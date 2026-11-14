@@ -19,4 +19,16 @@
 // replace the default in-memory store in a multi-instance deployment, and why the
 // in-memory store is not enough when several instances run behind a load balancer.
 //
-module.exports = (req, res, next) => next(); // TODO: replace this stub
+const rateLimit = require('express-rate-limit');
+
+// In a multi-instance deployment, replace the default MemoryStore with a
+// rate-limit-redis RedisStore shared by every instance. MemoryStore counters are
+// process-local, so a load balancer can spread requests across instances and
+// effectively multiply the allowed limit.
+module.exports = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
